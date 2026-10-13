@@ -352,6 +352,14 @@ here; download them from the original release.
 
 ---
 
+## AI assistance
+
+The analysis scripts, the figures and the documentation in this repository were
+written with AI assistance (Claude). The pipeline was run and the results
+verified by the author.
+
+---
+
 ## Acknowledgements
 
 HiFi-NN and the released artefacts are the work of Basecamp Research, under the
