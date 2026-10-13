@@ -1,0 +1,34 @@
+# Release artefacts: model weights, FAISS index, sequence corpora, ESM caches.
+# Not redistributed - download them from the original release.
+HiFiNN/
+data/
+*.pt
+*.ckpt
+*.index
+*.dmnd
+*.fasta
+*.faa
+
+# Embeddings
+esm_embeddings/
+hifinn_embeddings/
+esm_embeddings_july31/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# Downloads from the Claude desktop app: duplicates of files already in place
+Claude outputs/
+
+# Scratch from the exploratory phase
+README_extrait.md
+subset.py
+*.pdf
+
+# OS
+.DS_Store
+Thumbs.db
