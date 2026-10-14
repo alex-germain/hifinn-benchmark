@@ -1,7 +1,7 @@
 # Benchmarking HiFi-NN on a leakage-checked, identity-stratified test set
 
 An independent reproduction of [HiFi-NN](https://github.com/basecamp-research/hifinn)
-(Basecamp Research), run end to end on a Windows laptop, with an evaluation
+(Basecamp Research), run end to end on my Windows laptop, with an evaluation
 designed around two questions the released code does not answer on its own:
 
 1. **Is the test set actually held out?**
@@ -9,7 +9,7 @@ designed around two questions the released code does not answer on its own:
    the only situation where an embedding-based annotator should beat alignment?
 
 This is a small independent study, not a critique of the method. Everything here
-was produced from the public release and the artefacts shipped with it.
+was produced from the public release and the data shipped with it.
 
 ---
 
@@ -56,10 +56,10 @@ Windows 11 / Python 3.10 / PyTorch 2.14 CPU. Six are environment issues
 
 `esm/scripts/extract.py` names each output tensor after the entire header line
 rather than the accession. The shipped `swissprot_July31_cutoff_ec.fasta` has
-headers of the form `A0A8I5ZNK2 <unknown description>`, whose `<`, `>` and spaces
-are illegal in Windows filenames. The run aborts on the first batch with
+headers of the form `A0A8I5ZNK2 <unknown description>`, with `<`, `>` and spaces
+that are illegal in Windows filenames. The run aborts on the first batch with
 `RuntimeError: open file failed with error code: 123` (`ERROR_INVALID_NAME`).
-Those characters are legal on Linux and macOS, so the bug is invisible there.
+Those characters are legal on Linux and macOS, so the bug is only visible on Windows.
 
 *Fix:* sanitise headers to the bare accession before embedding. This is required
 regardless, since `swissprot_July31_cutoff_id_to_ec.json` is keyed on bare
@@ -76,7 +76,7 @@ which fails on a 16 GB laptop.
 *Fix:* expose `batch_size` in `configs/annotate.yaml`. At 4, the peak is ~330 MB
 with no effect on the results.
 
-### 1.3 The confidence softmax underflows, yielding NaN on remote queries
+### 1.3 The confidence softmax underflows, resulting in NaN on remote queries
 
 `get_confidence_scores` computes `exp(-d/T) / sum_k exp(-d_k/T)` with `T = 0.001`
 and no log-sum-exp shift. Since `exp(-d/0.001) = exp(-1000d)`, every term
@@ -119,7 +119,7 @@ own nearest neighbour at zero distance, with its own EC label. These files are
 almost certainly the authors' internal clustering splits rather than held-out
 benchmarks; nothing in the repository flags them as unsuitable for evaluation.
 `make_db.py` accepts an optional id list, so the index can be rebuilt with those
-ids excluded — but that was out of scope here.
+ids excluded but that was out of scope here.
 
 `price.fasta` carries RefSeq `WP_` accessions that are absent from
 `swissprot_all_ec_nums.json`, so it has no ground truth to score against.
@@ -157,7 +157,7 @@ absence of information, not a negative label.
 | 4 — full EC | 148 / 244 (61%) |
 
 Scoring `4.2.2.17` as wrong against a truth of `4.-.-.-` would cap F1 at 0.61 by
-construction, measuring Swiss-Prot's completeness rather than the model. Three
+construction. It would be as measuring Swiss-Prot's completeness rather than the model. Three
 conventions are therefore computed:
 
 - **A — strict.** Truth truncated literally, `-` included.
@@ -193,7 +193,7 @@ replacement.
 | 4 | 148 | 0.412 | [0.331, 0.493] | 0.366 | 101 | 0.007 | 0.001 |
 
 Null baselines are computed from the EC distribution of the index itself
-(274,501 entries): always predicting the most frequent class, and drawing
+(274,201 entries): always predicting the most frequent class, and drawing
 labels in proportion to their frequency (averaged over 200 draws).
 
 ### 4.2 Stratified by sequence identity to the indexed corpus
@@ -215,10 +215,11 @@ What holds and what does not:
 - **The level-4 effect is real.** The 30–50% and >= 90% intervals do not overlap.
   Identifying the exact reaction goes from ~0.88 to ~0.22 with distance to the
   index.
-- **The apparent uptick below 30% is noise.** 0.286 [0.10, 0.48] against
+- **The apparent uptick below 30% is probably noise.** 0.286 [0.10, 0.48] against
   0.219 [0.12, 0.32] — the intervals overlap heavily.
-- **The threshold is not resolved.** The 50–70% bin overlaps both neighbours. The
-  defensible claim is "the collapse happens below 50%", not "the threshold is 50%".
+- **The threshold is not resolved.** The 50–70% bin is separated from the 30–50% bin
+  but overlaps the bins above it. The defensible claim is "the collapse happens
+  below 50%", not "the threshold is 50%".
 - **Level 1 holds everywhere**, never dropping below 0.76, including for
   sequences with no alignable homologue.
 
@@ -337,8 +338,7 @@ Each script prints its tables and writes JSON to `results/`, so every number in
 this README traces back to a file.
 
 The DIAMOND step is not run by these scripts — DIAMOND has no reliable Windows
-build, so `results/diamond_hits.tsv` is committed. To regenerate it on Linux
-(~3 min on two cores):
+build, so `results/diamond_hits.tsv` is committed. To regenerate it on Linux :
 
 ```bash
 diamond makedb --in reduced30_train.fasta -d index_db
@@ -355,8 +355,8 @@ here; download them from the original release.
 ## AI assistance
 
 The analysis scripts, the figures and the documentation in this repository were
-written with AI assistance (Claude). The pipeline was run and the results
-verified by the author.
+written with the help of AI (Claude). The pipeline was run and the results
+verified by Alexandre Germain.
 
 ---
 
